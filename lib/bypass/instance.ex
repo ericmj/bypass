@@ -42,7 +42,7 @@ defmodule Bypass.Instance do
     socket = do_up(port, ref)
 
     state = %{
-      expect_fun: nil,
+      expects: [],
       port: port,
       ref: ref,
       request_result: :ok,
@@ -99,14 +99,19 @@ defmodule Bypass.Instance do
   end
 
   defp do_handle_call({:expect, nil}, _from, state) do
-    {:reply, :ok, %{state | expect_fun: nil, request_result: :ok}}
+    {:reply, :ok, %{state | expects: [], request_result: :ok}}
   end
   defp do_handle_call({:expect, fun}, _from, state) do
-    {:reply, :ok, %{state | expect_fun: fun, request_result: {:error, :not_called}}}
+    {:reply, :ok, %{state | expects: fun, request_result: {:error, :not_called}}}
+  end
+  defp do_handle_call({:expect, method, path, fun}, _from, %{expects: expects} = state) do
+    state = %{state | expects: [{method, path, fun}|expects],
+                      request_result: {:error, :not_called}}
+    {:reply, :ok, state}
   end
 
-  defp do_handle_call(:get_expect_fun, _from, %{expect_fun: expect_fun} = state) do
-    {:reply, expect_fun, state}
+  defp do_handle_call(:get_expects, _from, %{expects: expects} = state) do
+    {:reply, expects, state}
   end
 
   defp do_handle_call({:put_expect_result, result}, _from, state) do
