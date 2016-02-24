@@ -105,7 +105,8 @@ defmodule Bypass.Instance do
     {:reply, :ok, %{state | expects: fun, request_result: {:error, :not_called}}}
   end
   defp do_handle_call({:expect, method, path, fun}, _from, %{expects: expects} = state) do
-    state = %{state | expects: [{method, path, fun}|expects],
+    expect = {method, path_split(path), fun}
+    state = %{state | expects: [expect|expects],
                       request_result: {:error, :not_called}}
     {:reply, :ok, state}
   end
@@ -164,5 +165,10 @@ defmodule Bypass.Instance do
     else
       state
     end
+  end
+
+  defp path_split(path) do
+    segments = :binary.split(path, "/", [:global])
+    for segment <- segments, segment != "", do: segment
   end
 end
