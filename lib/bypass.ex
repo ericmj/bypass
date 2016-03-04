@@ -41,5 +41,5 @@ defmodule Bypass do
 
   @doc false
   def debug_log_enabled?,
-    do: Application.fetch_env!(:bypass, :enable_debug_log)
+    do: Application.get_env(:bypass, :enable_debug_log)
 end
